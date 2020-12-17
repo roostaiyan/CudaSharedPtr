@@ -16,16 +16,16 @@ To upload and download the array of host objects into the Cuda device you can us
     void download(T_ELEM* data_vec) const;
     
 Example Usage:
-   std::shared_ptr<T[]> data_host = = std::shared_ptr<T[]>(new T[n]);
-   .
-   .
-   .
-   // In host code:
-   cuda::shared_ptr<T> data_dev;
-   data_dev->upload(data_host.get(), n);
-   // In .cu file:
-   data_dev.data() points to device memory which contains data_host;
 
- in below function:
-  void upload(const T_ELEM* data_arr, int n_elements)
+
+    std::shared_ptr<T[]> data_host = = std::shared_ptr<T[]>(new T[n]);
+    .
+    .
+    .
+
+    // In host code:
+    cuda::shared_ptr<T> data_dev;
+    data_dev->upload(data_host.get(), n);
+    // In .cu file:
+    // data_dev.data() points to device memory which contains data_host;
 
