@@ -1,4 +1,4 @@
-# CudaSharedPtr
+# CudaSharedPtr (cuda::shared_ptr)
 
 This header file provides a smart pointer of device memory (cuda::shared_ptr<T>) , 
 which is released automatically whenever is needed exactly similar to std::shared_ptr.
