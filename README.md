@@ -5,6 +5,7 @@ which is released automatically whenever is needed exactly similar to std::share
 
 To upload and download the array of host objects into the Cuda device you can use below functions 
 (To upload a single object, you can set n_elements = 1):
+
     void upload_async(const std::vector<T> &data_vec, cudaStream_t stream);
     void upload(const std::vector<T> &data_vec);
     void download_async(std::vector<T> &data_vec, cudaStream_t stream) const;
