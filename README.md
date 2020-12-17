@@ -15,7 +15,7 @@ To upload and download the array of host objects into the Cuda device you can us
     void download_async(T* data_vec, cudaStream_t stream) const;
     void download(T_ELEM* data_vec) const;
     
-Example Usage:
+Usage Example:
 
 
     std::shared_ptr<T[]> data_host = = std::shared_ptr<T[]>(new T[n]);
