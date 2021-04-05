@@ -18,7 +18,7 @@ To upload and download the array of host objects into the Cuda device you can us
 Usage Example:
 
 
-    std::shared_ptr<T[]> data_host = = std::shared_ptr<T[]>(new T[n]);
+    cuda::shared_ptr<T[]> data_host = cuda::shared_ptr<T[]>(new T[n]);
     .
     .
     .
