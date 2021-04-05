@@ -24,7 +24,7 @@ Usage Example:
     .
 
     // In host code:
-    cuda::shared_ptr<T> data_dev;
+    fun::cuda::shared_ptr<T> data_dev;
     data_dev->upload(data_host.get(), n);
     // In .cu file:
     // data_dev.data() points to device memory which contains data_host;
