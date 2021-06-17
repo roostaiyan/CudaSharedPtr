@@ -18,15 +18,19 @@
 #include <cuda_runtime.h>
 #include <memory>
 #include <vector>
+#include <opencv2/core/cuda_stream_accessor.hpp>
 
 namespace inner_implementation {
 template <typename T_ELEM>
 struct CudaPtrWrapper {
     int n_elements;
     T_ELEM* data = nullptr;
-    cudaError_t status;
+    mutable cudaError_t status = cudaSuccess;
 
 public:
+    cudaError_t getStatus() const{
+        return status;
+    }
     bool create(size_t size){
         if(n_elements == size)
             return true;
@@ -59,7 +63,6 @@ public:
         if(n_elements<=0)
             return;
         size_t buffer_size = n_elements*sizeof(T_ELEM);
-        cudaError_t status;
         if(stream)
             status = cudaMemcpyAsync(data_arr, data, buffer_size, cudaMemcpyDeviceToHost, stream);
         else
@@ -87,12 +90,20 @@ public:
 
 namespace fun {
 
+enum StreamPriority {
+    Low = 0,
+    High = 1
+};
+
 namespace cuda {
 
 template <typename T_ELEM>
 struct shared_ptr {
 private:
     std::shared_ptr<inner_implementation::CudaPtrWrapper<T_ELEM>> dev_array;
+public:
+    mutable std::shared_ptr<T_ELEM[]> host_arr;
+
 public:
     shared_ptr(){
         dev_array = std::make_shared<inner_implementation::CudaPtrWrapper<T_ELEM>>();
@@ -105,8 +116,16 @@ public:
         if(dev_array)
             dev_array.reset();
     }
+    void destroy(){
+        if(dev_array)
+            dev_array->destroy();
+        host_arr.reset();
+    }
     T_ELEM* data(){
         return dev_array->data;
+    }
+    cudaError_t getStatus(){
+        return dev_array->getStatus();
     }
     const T_ELEM* data() const {
         return dev_array->data;
@@ -119,9 +138,9 @@ public:
     }
     void upload_async(const std::vector<T_ELEM> &data_vec, cudaStream_t stream){
         size_t n_elements = data_vec.size();
-        std::unique_ptr<T_ELEM[]> data_arr = std::unique_ptr<T_ELEM[]>(new T_ELEM[n_elements]);
-        std::copy(data_vec.begin(), data_vec.end(), data_arr.get());
-        dev_array->upload(data_arr.get(), n_elements, stream);
+        host_arr = std::shared_ptr<T_ELEM[]>(new T_ELEM[n_elements]);
+        std::copy(data_vec.begin(), data_vec.end(), host_arr.get());
+        dev_array->upload(host_arr.get(), n_elements, stream);
     }
     void upload(const std::vector<T_ELEM> &data_vec){
         upload_async(data_vec, nullptr);
@@ -130,11 +149,11 @@ public:
         size_t n_elements = dev_array->n_elements;
         if(n_elements<=0)
             return;
-        std::unique_ptr<T_ELEM[]> data_arr = std::unique_ptr<T_ELEM[]>(new T_ELEM[n_elements]);
-        dev_array->download(data_arr.get(), stream);
+        host_arr = std::shared_ptr<T_ELEM[]>(new T_ELEM[n_elements]);
+        dev_array->download(host_arr.get(), stream);
         if(stream)
             cudaStreamSynchronize(stream);
-        std::copy(data_arr.get(), data_arr.get()+n_elements, data_vec.begin());
+        std::copy(host_arr.get(), host_arr.get()+n_elements, data_vec.begin());
     }
     void download(std::vector<T_ELEM> &data_vec) const {
         download_async(data_vec, nullptr);
@@ -152,7 +171,24 @@ public:
         download_async(data_vec, nullptr);
     }
 };
-}
 
+struct Stream {
+    static inline void create(StreamPriority priority, cudaStream_t &c_stream){
+        int low, high;
+        cudaDeviceGetStreamPriorityRange(&low, &high);
+        int priority_num = priority==Low ? low : high;
+        if (cudaStreamCreateWithPriority(&c_stream, cudaStreamDefault, priority_num) != cudaSuccess)
+            throw std::runtime_error("failed to create cuda stream");
+    }
+    static inline void destroy(StreamPriority priority, cudaStream_t &c_stream){
+        if(c_stream){
+            cudaStreamDestroy(c_stream);
+            c_stream = nullptr;
+        }
+    }
+
+};
+
+}
 }
 #endif // CUDASHAREDPTR_H
