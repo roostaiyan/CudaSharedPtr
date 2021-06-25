@@ -23,7 +23,7 @@
 namespace inner_implementation {
 template <typename T_ELEM>
 struct CudaPtrWrapper {
-    int n_elements;
+    size_t n_elements = 0;
     T_ELEM* data = nullptr;
     mutable cudaError_t status = cudaSuccess;
 
@@ -60,7 +60,7 @@ public:
         }
     }
     void download(T_ELEM* data_arr, cudaStream_t stream) const {
-        if(n_elements<=0)
+        if(n_elements==0)
             return;
         size_t buffer_size = n_elements*sizeof(T_ELEM);
         if(stream)
