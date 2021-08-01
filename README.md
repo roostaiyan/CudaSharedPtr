@@ -1,7 +1,7 @@
 # CudaSharedPtr (cuda::shared_ptr)
 
 This header file provides a smart pointer of device memory (cuda::shared_ptr<T>) , 
-which is released automatically whenever is needed exactly similar to std::shared_ptr.
+which is released automatically whenever is needed exactly similar to std::shared_ptr (when ref_count reaches to zero). You can also use the same technique for OpenCl Buffer and OpenGl Textures (texture id). 
 
 To upload and download the array of host objects into the Cuda device you can use below functions 
 (To upload a single object, you can set n_elements = 1):
@@ -30,3 +30,4 @@ Usage Example:
     // In .cu file:
     // data_dev.data() points to device memory which contains data_host;
 
+To decrease the number of cudaMalloc and cudaFree calls, you can pass buffer_pool_usage = true to fun::cuda::shared_ptr<T> constructor. This (buffer_pool_usage = true) is specially usefull when the maximum buffer length is limited and does not change after a while. This argument is "false" by default. 
