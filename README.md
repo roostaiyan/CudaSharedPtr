@@ -30,4 +30,4 @@ Usage Example:
     // In .cu file:
     // data_dev.data() points to device memory which contains data_host;
 
-To decrease the number of cudaMalloc and cudaFree calls, you can pass buffer_pool_usage = true to fun::cuda::shared_ptr<T> constructor. This (`buffer_reuse = true`) is specially usefull when the maximum buffer length is limited and does not change after a while. This argument is "false" by default. 
+To decrease the number of cudaMalloc and cudaFree calls, you can pass `buffer_reuse = true` to fun::cuda::shared_ptr<T> constructor. This (`buffer_reuse = true`) is specially usefull when the maximum buffer length is limited and does not change after a while. This argument is "false" by default. 
